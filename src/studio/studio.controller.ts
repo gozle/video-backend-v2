@@ -71,7 +71,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthGuard } from 'src/validation/auth.guard';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 // @UseGuards()
 @ApiTags('Studio')
@@ -85,6 +85,7 @@ export class StudioController {
   ////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////
 
+  @Get('')
   @UseGuards(AuthGuard)
   @ApiHeader({ name: 'access_token' })
   @ApiConsumes('multipart/form-data')

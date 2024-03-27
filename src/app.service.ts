@@ -1,21 +1,41 @@
 import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { Video } from './models/video.model';
 import { Channel } from './models/channel.model';
-import { Op, Sequelize, where } from 'sequelize';
+import { Sequelize } from 'sequelize';
 import { User } from './models/user.model';
-import sequelize from 'sequelize';
-import { Like } from './models/like.model';
 
-import { statSync, createReadStream } from 'fs';
-import { Headers } from '@nestjs/common';
-import { Response } from 'express';
-
-import { Subscribe } from './models/subscribe.model';
 import { UserHistory } from './models/userHistory.model';
+import { Subscription } from './models/subscription.model';
+import { Genre } from './models/genre.model';
+import { Language } from './models/language.model';
 
 @Injectable()
 export class AppService {
-  async getMain(): Promise<any> {
+  async getMain(userPayload, lang): Promise<any> {
+    const user = await User.findByPk(userPayload.id);
+    let subscription = [];
+    if (user) {
+      subscription = await user.getSubscription({
+        attributes: [
+          'channelId',
+          [
+            Sequelize.literal(
+              '( SELECT channel_name FROM "Channels" WHERE "Channels"."id" =  "Subscription"."channelId")',
+            ),
+            'channel_name',
+          ],
+          [
+            Sequelize.literal(
+              '( SELECT avatar FROM "Channels" WHERE "Channels"."id" =  "Subscription"."channelId")',
+            ),
+            'avatar_path',
+          ],
+        ],
+      });
+    }
+
+    let genres = await Genre.findAll({ limit: 7 });
+
     const videos = await Video.findAll({
       limit: 25,
       offset: 0,
@@ -35,7 +55,7 @@ export class AppService {
       },
     });
 
-    return { videos };
+    return { subscription, videos };
   }
 
   async getChannels(user: { id: number }): Promise<any> {
@@ -46,13 +66,14 @@ export class AppService {
         include: [
           [
             Sequelize.literal(
-              '( SELECT COUNT(*) FROM "Subscribes" WHERE "Subscribes"."channelId" =  "Channel"."id")',
+              '( SELECT COUNT(*) FROM "Subscriptions" WHERE "Subscriptions"."channelId" =  "Channel"."id")',
             ),
             'subscribeCount',
           ],
+
           [
             Sequelize.literal(
-              `(SELECT EXISTS (SELECT * FROM "Subscribes" WHERE "Subscribes"."channelId" = "Channel"."id" AND "Subscribes"."userId" = ${user.id}))`,
+              `(SELECT EXISTS (SELECT * FROM "Subscriptions" WHERE "Subscriptions"."channelId" = "Channel"."id" AND "Subscriptions"."userId" = ${user.id}))`,
             ),
             'isSubsCribe',
           ],
@@ -75,13 +96,13 @@ export class AppService {
         include: [
           [
             Sequelize.literal(
-              '( SELECT COUNT(*) FROM "Subscribes" WHERE "Subscribes"."channelId" =  "Channel"."id")',
+              '( SELECT COUNT(*) FROM "Subscriptions" WHERE "Subscriptions"."channelId" =  "Channel"."id")',
             ),
             'subscribeCount',
           ],
           [
             Sequelize.literal(
-              `(SELECT EXISTS (SELECT * FROM "Subscribes" WHERE "Subscribes"."channelId" = "Channel"."id" AND "Subscribes"."userId" = ${user.id}))`,
+              `(SELECT EXISTS (SELECT * FROM "Subscriptions" WHERE "Subscriptions"."channelId" = "Channel"."id" AND "Subscriptions"."userId" = ${user.id}))`,
             ),
             'isSubsCribe',
           ],
@@ -139,13 +160,13 @@ export class AppService {
           include: [
             [
               Sequelize.literal(
-                '( SELECT COUNT(*) FROM "Subscribes" WHERE "Subscribes"."channelId" =  "Channel"."id")',
+                '( SELECT COUNT(*) FROM "Subscriptions" WHERE "Subscriptions"."channelId" =  "Channel"."id")',
               ),
               'subscribeCount',
             ],
             [
               Sequelize.literal(
-                `(SELECT EXISTS (SELECT * FROM "Subscribes" WHERE "Subscribes"."channelId" = "Channel"."id" AND "Subscribes"."userId" = ${user.id}))`,
+                `(SELECT EXISTS (SELECT * FROM "Subscriptions" WHERE "Subscriptions"."channelId" = "Channel"."id" AND "Subscriptions"."userId" = ${user.id}))`,
               ),
               'isSubsCribe',
             ],

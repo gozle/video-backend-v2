@@ -15,7 +15,7 @@ import { VideoService } from './video.service';
 import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { statSync, createReadStream } from 'fs';
 import { Reaction } from 'src/validation/reaction.validator';
-import { AuthGuard } from 'src/validation/auth.guard';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @ApiTags('Video Tools')
 @Controller('api')

@@ -1,22 +1,31 @@
 import {
+  ForbiddenException,
   Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import Sequelize from '@sequelize/core';
+
 import { User } from 'src/models/user.model';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 const sendEmail = require('../util/sendMail');
-import * as conf from '../config.json';
-import { where } from 'sequelize';
+import * as conf from '../config/config.json';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
+
+const access_secret = process.env.accessSecret || conf.accessSecret;
+const refrsh_secret = process.env.refreshSecret || conf.refreshSecret;
+
 const accesOption = {
-  secret: 'secret_gozle_video_premium',
-  expiresIn: '30m',
+  secret: '',
+  expiresIn: '1h',
 };
+const NodeCache = require('node-cache');
+const myCache = new NodeCache({ stdTTL: 300, checkperiod: 320 });
 
 const refreshOption = {
   secret: 'refresh_secret_gozle_video_premium',
@@ -34,7 +43,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
   /////////////////////////////////////////////////////////
-  //  Regist
+  //  Register
   /////////////////////////////////////////////////////////
   async createUser(data: User, file: string) {
     try {
@@ -42,14 +51,16 @@ export class AuthService {
 
       let us = await User.findOne({ where: { email: data.email } });
 
-      if (us) {
+      if (us && !us.isVerify) {
         const payload1 = { id: us.id, email: us.email };
         const emailToken = await this.jwtService.signAsync(
           payload1,
           verifyOption,
         );
+        const hasSent = myCache.get(`${us.email}`);
 
-        let mailText = `<h1> Salam! 🖐🏻</h1>
+        if (!hasSent) {
+          let mailText = `<h1> Salam! 🖐🏻</h1>
         </br>
         </br>
         <h3>Gözle wideo E-mail adresiňizi tassyklamak üçin aşakdaky baglanyşygy ulanmagyňyzy haýyş edýäris!</h3>
@@ -60,9 +71,11 @@ export class AuthService {
         <a href="${conf.url}/api/auth/verify/email/${emailToken}">${conf.url}/api/auth/verify/email/${emailToken}</a>
         Registrasiýaňyz üçin sag boluň!
         </br>
-        Gözle topary!
+        Gözle topary!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
         `;
-        let send = await sendEmail.sendEmailMessage(data.email, mailText);
+          myCache.set(`${us.email}`, true);
+          let send = await sendEmail.sendEmailMessage(data.email, mailText);
+        }
         return { message: 'Succesfully sent link to E-mail address!' };
       }
 
@@ -80,8 +93,11 @@ export class AuthService {
         payload1,
         verifyOption,
       );
+      const hasSent = myCache.get(`${user.email}`);
 
-      let mailText = `<h1> Salam! 🖐🏻</h1>
+      if (!hasSent) {
+        myCache.set(`${user.email}`, true);
+        let mailText = `<h1> Salam! 🖐🏻</h1>
       </br>
       </br>
       <h3>Gözle wideo E-mail adresiňizi tassyklamak üçin aşakdaky baglanyşygy ulanmagyňyzy haýyş edýäris!</h3>
@@ -94,7 +110,8 @@ export class AuthService {
       </br>
       Gözle topary!
       `;
-      let send = await sendEmail.sendEmailMessage(data.email, mailText);
+        await sendEmail.sendEmailMessage(data.email, mailText);
+      }
       // const payload = { id: user.id, username: user.username };
       // const acces_token = await this.jwtService.signAsync(payload, accesOption);
       // const refresh_token = await this.jwtService.signAsync(
@@ -115,11 +132,35 @@ export class AuthService {
 
   async login(data: LoginDto) {
     const user = await User.findOne({
-      where: { email: data.email, isVerify: true },
+      where: { email: data.email }, //, isVerify: true
     });
-    if (!user) {
-      throw new UnauthorizedException({
-        message: 'Please sign up or verify your account',
+    if (!user.isVerify) {
+      const payload1 = { id: user.id, email: user.email };
+      const emailToken = await this.jwtService.signAsync(
+        payload1,
+        verifyOption,
+      );
+      const hasSent = myCache.get(`${user.email}`);
+
+      if (!hasSent) {
+        myCache.set(`${user.email}`, true);
+        let mailText = `<h1> Salam! 🖐🏻</h1>
+      </br>
+      </br>
+      <h3>Gözle wideo E-mail adresiňizi tassyklamak üçin aşakdaky baglanyşygy ulanmagyňyzy haýyş edýäris!</h3>
+      </br>
+      <h3>Eger bu saýtda registrasiýa etmedik bolsaňyz, bu habary äsgermezlik ediň ýa-da pozuň.!</h3>
+      </br>
+      </br>
+      <a href="${conf.url}/api/auth/verify/email/${emailToken}">${conf.url}/api/auth/verify/email/${emailToken}</a>
+      Registrasiýaňyz üçin sag boluň!
+      </br>
+      Gözle topary!
+      `;
+        let send = await sendEmail.sendEmailMessage(data.email, mailText);
+      }
+      throw new ForbiddenException({
+        message: 'Please sign up or check your e-post if already signed up!',
       });
     }
 
@@ -129,12 +170,12 @@ export class AuthService {
       throw new UnauthorizedException();
     }
     const payload = { id: user.id, username: user.username };
-    const acces_token = await this.jwtService.signAsync(payload, accesOption);
+    const access_token = await this.jwtService.signAsync(payload, accesOption);
     const refresh_token = await this.jwtService.signAsync(
       payload,
       refreshOption,
     );
-    return { acces_token, refresh_token };
+    return { access_token, refresh_token };
   }
   /////////////////////////////////////////////////////////
   //  Renew access_token
@@ -142,8 +183,19 @@ export class AuthService {
   async reNewToken(data: any) {
     try {
       const payload = { id: data.id, username: data.username };
-      const acces_token = await this.jwtService.signAsync(payload, accesOption);
-      return { acces_token };
+      const user = await User.findByPk(data.id);
+      if (!user) {
+        throw new UnauthorizedException();
+      }
+      const access_token = await this.jwtService.signAsync(
+        payload,
+        accesOption,
+      );
+      const refresh_token = await this.jwtService.signAsync(
+        payload,
+        refreshOption,
+      );
+      return { access_token, refresh_token };
     } catch (err) {
       throw new InternalServerErrorException(err);
     }
@@ -155,17 +207,16 @@ export class AuthService {
 
   async fgetVerify(token: string) {
     try {
-      console.log(token);
       const payload = await this.jwtService.verifyAsync(token, {
         secret: verifyOption.secret,
       });
 
       const user = await User.findByPk(payload.id);
       if (!user) {
-        throw new NotFoundException();
+        throw new ForbiddenException();
       }
-
       await user.update({ isVerify: true });
+      myCache.take(`${user.email}`, true);
 
       return { url: 'gozle.video.app://outh2redirect', statusCode: 301 };
     } catch (err) {

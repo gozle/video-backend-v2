@@ -9,19 +9,22 @@ import {
   ForeignKey,
   Unique,
   DataType,
+  BelongsToMany,
 } from 'sequelize-typescript';
 import { Video } from './video.model';
 import { User } from './user.model';
 import {
   BelongsToGetAssociationMixin,
+  BelongsToManyGetAssociationsMixin,
   HasManyAddAssociationMixin,
   HasManyAddAssociationsMixin,
   HasManyGetAssociationsMixin,
   HasManySetAssociationsMixin,
   NonAttribute,
 } from 'sequelize';
-import { Subscribe } from './subscribe.model';
+import { Subscription } from './subscription.model';
 import { ChannelPlaylist } from './playlistChannel.model';
+import { Genre } from './genre.model';
 
 @Table
 export class Channel extends Model {
@@ -45,8 +48,10 @@ export class Channel extends Model {
   @HasMany(() => Video)
   videos!: Video[];
 
-  @HasMany(() => Subscribe)
-  subscribe!: Subscribe[];
+  @HasMany(() => Subscription)
+  subscription!: Subscription[];
+
+  declare getSubscribes: HasManyGetAssociationsMixin<Subscription>;
 
   @HasMany(() => ChannelPlaylist)
   channelPlaylists!: ChannelPlaylist;
@@ -73,6 +78,15 @@ export class Channel extends Model {
   userId!: number;
 
   declare getUser: BelongsToGetAssociationMixin<User>;
+
+  @ForeignKey(() => Genre)
+  @Column
+  genreId!: number;
+
+  @BelongsTo(() => Genre)
+  genre!: Channel;
+
+  declare getGenre: BelongsToGetAssociationMixin<Genre>;
 
   isSubscribe: boolean;
 }

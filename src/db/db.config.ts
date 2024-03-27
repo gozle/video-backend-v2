@@ -4,7 +4,7 @@ import { IDatabaseConfig } from './db.interface';
 
 // dotenv.config()
 
-import * as conf from '../config.json';
+import * as conf from '../config/config.json';
 
 export const dataBaseConfig: IDatabaseConfig = {
   dev: {
@@ -12,7 +12,7 @@ export const dataBaseConfig: IDatabaseConfig = {
     password: conf.password, //process.env.PASS,
     database: conf.database, //process.env.DB_NAME,
     host: conf.host, //process.env.HOST,
-    port: conf.port, //process.env.PORT,
+    port: conf.dbport, //process.env.PORT,
     dialect: conf.dialect, //process.env.DIALECT
   },
 };

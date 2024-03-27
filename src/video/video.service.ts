@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Channel } from 'diagnostics_channel';
 import { Op } from 'sequelize';
 import { Like } from 'src/models/like.model';
-import { Subscribe } from 'src/models/subscribe.model';
+import { Subscription } from 'src/models/subscription.model';
 import { Video } from 'src/models/video.model';
 
 @Injectable()

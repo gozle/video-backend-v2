@@ -3,9 +3,7 @@ import {
   Body,
   Controller,
   Get,
-  Inject,
   Param,
-  Patch,
   Post,
   Req,
   Request,
@@ -17,9 +15,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { User } from '../models/user.model';
-import { Prime } from '../models/prime.model';
-import { Validate } from 'class-validator';
-import { NotAuth } from '../validation/not-auth.guard';
+
 import {
   ApiBody,
   ApiConsumes,
@@ -29,13 +25,10 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
-import {
-  FileFieldsInterceptor,
-  FileInterceptor,
-} from '@nestjs/platform-express';
-import { AuthGuard } from 'src/validation/auth.guard';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+
 import { LoginDto } from './dto/login.dto';
-import { RefreshToken } from 'src/validation/refresh-token.guard';
+import { RefreshToken } from 'src/common/guards/refresh-token.guard';
 
 const multerOptions: {} = {
   storage: diskStorage({
@@ -60,7 +53,6 @@ const multerOptions: {} = {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @UseGuards(NotAuth)
   @ApiOperation({
     summary: 'Registration',
     description:
@@ -99,12 +91,11 @@ export class AuthController {
     },
   })
   @Post('register')
-  // @Validate()
   @UseInterceptors(
     FileFieldsInterceptor([{ name: 'avatar', maxCount: 1 }], multerOptions),
   )
   create(
-    @Body(new ValidationPipe()) body: User,
+    @Body() body: User,
     @UploadedFiles() file: { avatar?: Express.Multer.File[] },
   ) {
     let fl;
@@ -114,7 +105,6 @@ export class AuthController {
     return this.authService.createUser(body, fl);
   }
 
-  @UseGuards(NotAuth)
   @ApiOperation({
     summary: 'Login',
     description: 'Login edenden son access_token we refresh_token berilyar',
@@ -127,7 +117,8 @@ export class AuthController {
   @UseGuards(RefreshToken)
   @ApiOperation({
     summary: 'New access_token',
-    description: 'autoLogin refrsh_token ugrat taze access_token breyar',
+    description:
+      'autoLogin refrsh_token ugrat taze access_token we refresh token berya breyar',
   })
   @ApiHeader({ name: 'refresh_token' })
   @Get('/reNewAccessToken')
@@ -135,7 +126,6 @@ export class AuthController {
     return await this.authService.reNewToken(req.user);
   }
 
-  @UseGuards(NotAuth)
   @ApiOperation({ summary: 'Verify user Email' })
   @Get('verify/email/:token')
   async getVerify(

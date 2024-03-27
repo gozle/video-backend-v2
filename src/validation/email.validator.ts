@@ -16,17 +16,29 @@ export class EmailInDb implements ValidatorConstraintInterface {
     const [relatedPropertyName] = username.constraints;
     const relatedValue = (username.object as any)[relatedPropertyName];
 
-    let user: any = await User.findOne({ where: { email: args } });
-    if (user && user.isVerify) {
-      err = 'This e-mail address already exists. Please try another one!';
+    let user = await User.findOne({ where: { username: relatedValue } });
+    if (user) {
+      err = 'This username already exists. Please try another one!';
       return false;
     }
 
-    user = await User.findOne({ where: { username: relatedValue } });
-    if (user) {
-      err = 'This username alreade exists. Please try another one!';
+    user = await User.findOne({ where: { email: args } });
+
+    if (!user) {
+      return true;
+    }
+
+    // if (user && user.isVerify === true) {
+    //   err = 'This e-mail address already exists. Please try another one!';
+    //   return false;
+    // }
+
+    if (user && user.isVerify === false) {
+      err =
+        'This e-mail address already exists or not verified. Please try another one or verify it!';
       return false;
     }
+
     return true;
   }
 

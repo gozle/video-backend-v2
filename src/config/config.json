@@ -1,20 +1,20 @@
 {
-  "url": "http:/localhost:8000",
-
-  /* DB config */
+  "url": "http://192.168.12.34:8000",
+  "port": 8000,
 
   "username": "postgres",
   "password": "visualcode",
   "database": "gozle_video",
   "host": "localhost",
-  "port": 5432,
+  "dbport": 5432,
   "dialect": "postgres",
-
-  /* Email verification */
 
   "EmailpassKey": "s2MJ(;i10umiAE",
   "EmailuserName": "video@gozle.org",
   "EmailHost": "smtp.timeweb.ru",
   "EmailPort": 25,
-  "secret": "2225yzynymenembilemok"
+  "secret": "2225yzynymenembilemok",
+
+  "refreshSecret": "refresh_secret_gozle_video_premium",
+  "accessSecret": "secret_gozle_video_premium"
 }

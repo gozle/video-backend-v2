@@ -20,7 +20,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Reaction } from 'src/validation/reaction.validator';
-import { AuthGuard } from 'src/validation/auth.guard';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @Controller('api')
 export class UserController {

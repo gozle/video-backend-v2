@@ -6,7 +6,7 @@ import {
 import Sequelize from '@sequelize/core';
 import { Like } from 'src/models/like.model';
 import { UserPlaylist } from 'src/models/playlistUser.model';
-import { Subscribe } from 'src/models/subscribe.model';
+import { Subscription } from 'src/models/subscription.model';
 import { User } from 'src/models/user.model';
 import { Video } from 'src/models/video.model';
 
@@ -35,17 +35,18 @@ export class UserService {
   }
 
   async subscribe(userId: number, channelId: number) {
-    const subscribe = await Subscribe.findOne({
+    const subscribe = await Subscription.findOne({
       where: {
         userId,
         channelId,
       },
     });
+    console.log(userId, channelId);
     if (subscribe) {
       await subscribe.destroy();
       return { isSubscribe: false };
     } else {
-      await Subscribe.create({ userId, channelId });
+      await Subscription.create({ userId, channelId });
       return { isSubscribe: true };
     }
   }

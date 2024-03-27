@@ -1,30 +1,37 @@
 const nodemailer = require('nodemailer');
-import * as conf from '../config.json';
+import * as conf from '../config/config.json';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
+
+const NodeCache = require('node-cache');
+const myCache = new NodeCache({ stdTTL: 300, checkperiod: 320 });
 
 let transporter = nodemailer.createTransport({
-  host: conf.EmailHost,
-  port: conf.EmailPort,
+  host: process.env.EmailHost,
+  port: process.env.EmailPort,
   secure: false,
+  from: 'gozle.org',
   auth: {
-    user: conf.EmailuserName,
-    pass: conf.EmailpassKey,
+    user: process.env.EmailuserName,
+    pass: process.env.EmailpassKey,
   },
 });
 
-exports.sendEmailMessage = (email, message) => {
+exports.sendEmailMessage = async (email, message) => {
   let mails = {
-    from: 'Gozle',
+    from: 'gozle.org',
     to: email,
     subject: 'Gözle Wideo registrasiýa',
-    // text: 'Your confirmation code is:' + code,
     html: message,
   };
 
-  transporter.sendMail(mails, (err, data) => {
+  await transporter.sendMail(mails, (err, data) => {
     if (err) {
-      console.log(err);
+      myCache.take(`${email}`, true);
+      return false;
     } else {
-      console.log('Success');
+      return true;
     }
   });
 };

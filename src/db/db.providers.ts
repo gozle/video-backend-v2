@@ -11,12 +11,14 @@ import { Prime } from 'src/models/prime.model';
 import { Tags } from 'src/models/tags.model';
 import { VideoTags } from 'src/models/videoTags.model';
 import { Channel } from 'src/models/channel.model';
-import { Subscribe } from 'src/models/subscribe.model';
+import { Subscription } from 'src/models/subscription.model';
 import { Genre } from 'src/models/genre.model';
 import { UserPlaylist } from 'src/models/playlistUser.model';
 import { UserPlaylistVideos } from 'src/models/userPlaylistVideos.model';
 import { ChannelPlaylist } from 'src/models/playlistChannel.model';
 import { ChannelPlaylistVideos } from 'src/models/channelPlaylistVideos';
+import { Language } from 'src/models/language.model';
+import { Translation } from 'src/models/translations.model';
 
 export const databaseProviders = [
   {
@@ -34,12 +36,14 @@ export const databaseProviders = [
         Tags,
         VideoTags,
         Channel,
-        Subscribe,
+        Subscription,
         Genre,
         UserPlaylist,
         UserPlaylistVideos,
         ChannelPlaylist,
         ChannelPlaylistVideos,
+        Language,
+        Translation,
       ]);
       // await sequelize.sync({ force: true });
       await sequelize.sync({ alter: true });

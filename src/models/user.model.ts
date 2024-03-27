@@ -16,31 +16,20 @@ import { UserHistory } from './userHistory.model';
 import { ApiProperty } from '@nestjs/swagger';
 import { NonAttribute } from '@sequelize/core';
 import {
-  HasManyAddAssociationMixin,
+  BelongsToManyGetAssociationsMixin,
   HasManyGetAssociationsMixin,
   HasManySetAssociationsMixin,
   HasOneGetAssociationMixin,
   HasOneSetAssociationMixin,
 } from 'sequelize';
-import {
-  IsAlphanumeric,
-  IsByteLength,
-  IsEmail,
-  IsNotEmpty,
-  IsNumber,
-  IsNumberString,
-  IsPhoneNumber,
-  IsString,
-  Validate,
-  isNumber,
-} from 'class-validator';
+import { IsByteLength, IsEmail, Validate } from 'class-validator';
 import { MatchPassword } from '../validation/match_pass.validator';
 import { IsPhone } from '../validation/tel_number.validator';
 import { EmailInDb } from '../validation/email.validator';
 import { Prime } from './prime.model';
 import { Like } from './like.model';
 
-import { Subscribe } from './subscribe.model';
+import { Subscription } from './subscription.model';
 import { Video } from './video.model';
 import { Comment } from './comment.model';
 import { UserPlaylist } from './playlistUser.model';
@@ -90,7 +79,6 @@ export class User extends Model {
   tel: number;
 
   @ApiProperty()
-  @Unique
   @Column(DataType.INTEGER)
   tel_number: number;
 
@@ -103,7 +91,7 @@ export class User extends Model {
   @HasMany(() => Channel)
   channel?: NonAttribute<Channel>;
 
-  // declare getChannel: HasOneGetAssociationMixin<Channel>;
+  declare getChannel: HasManyGetAssociationsMixin<Channel>;
   // declare setChannel: HasOneSetAssociationMixin<
   //     Channel,
   //     Channel['id']
@@ -111,6 +99,7 @@ export class User extends Model {
 
   @HasOne(() => Prime, 'userId')
   prime?: NonAttribute<Prime>;
+
   declare getPrime: HasOneGetAssociationMixin<Prime>;
   declare setPrime: HasOneSetAssociationMixin<Prime, Prime['id']>;
 
@@ -134,8 +123,10 @@ export class User extends Model {
   declare getComments: HasManyGetAssociationsMixin<Comment>;
   declare setComments: HasManySetAssociationsMixin<Comment, Comment['id']>;
 
-  @HasMany(() => Subscribe)
-  subscribes!: Subscribe[];
+  @HasMany(() => Subscription)
+  subscription!: Subscription[];
+
+  declare getSubscription: BelongsToManyGetAssociationsMixin<Channel>;
 
   @HasMany(() => UserPlaylist)
   userPlaylists!: UserPlaylist;

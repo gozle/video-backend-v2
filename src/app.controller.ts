@@ -1,26 +1,29 @@
 import {
   Controller,
   Get,
-  Header,
-  Headers,
   Param,
   Response,
   Request,
   UseGuards,
+  Headers,
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ApiHeader, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { getUserInfo } from './validation/getUserInfo.guard';
-import { AuthGuard } from './validation/auth.guard';
+import { getUserInfo } from './common/guards/getUserInfo.guard';
+import { AuthGuard } from './common/guards/auth.guard';
+import { GetLanguage } from './validation/getLanguage.guard';
 
 @ApiTags('main')
 @Controller('api')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  @UseGuards(getUserInfo)
+  @ApiHeader({ name: 'access_token' })
+  @ApiHeader({ name: 'accept-language' })
   @Get('main')
-  getMain(): Promise<any> {
-    return this.appService.getMain();
+  getMain(@Request() req: any): Promise<any> {
+    return this.appService.getMain(req.user, req.lang);
   }
 
   @UseGuards(getUserInfo)

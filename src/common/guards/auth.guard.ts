@@ -5,6 +5,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import * as conf from '../../config/config.json';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
+
+const access_secret = process.env.accessSecret || conf.accessSecret;
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -19,8 +25,7 @@ export class AuthGuard implements CanActivate {
     }
     try {
       const payload = await this.jwtService.verifyAsync(token, {
-        // secret: process.env.JWT_SECRET_ACCESS,
-        secret: 'secret_gozle_video_premium',
+        secret: access_secret,
       });
       request['user'] = payload;
     } catch {
