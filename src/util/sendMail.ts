@@ -1,5 +1,5 @@
 const nodemailer = require('nodemailer');
-import * as conf from '../config/config.json';
+
 import * as dotenv from 'dotenv';
 
 dotenv.config();

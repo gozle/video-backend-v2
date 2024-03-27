@@ -9,12 +9,6 @@
   "dbport": 5432,
   "dialect": "postgres",
 
-  "EmailpassKey": "s2MJ(;i10umiAE",
-  "EmailuserName": "video@gozle.org",
-  "EmailHost": "smtp.timeweb.ru",
-  "EmailPort": 25,
-  "secret": "2225yzynymenembilemok",
-
   "refreshSecret": "refresh_secret_gozle_video_premium",
   "accessSecret": "secret_gozle_video_premium"
 }
