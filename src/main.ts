@@ -12,13 +12,14 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
+const URL = process.env.URL || 'http://localhost';
 const PORT = process.env.PORT || 8000;
 const config = new DocumentBuilder()
   .setTitle('Gozle_video swagger')
   .setDescription('The _video API routes')
-  .setVersion('1.1')
+  .setVersion('1.0')
   .addServer('http://localhost:8000') // Add a server
-  .addServer(conf.url)
+  .addServer(`${URL}:${PORT}`)
   .build();
 
 async function bootstrap() {
