@@ -13,12 +13,13 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 const URL = process.env.URL || 'http://localhost';
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 7000;
 const config = new DocumentBuilder()
   .setTitle('Gozle_video swagger')
   .setDescription('The _video API routes')
   .setVersion('1.0')
-  .addServer('http://localhost:8000') // Add a server
+  .addServer('http://localhost:7000') // Add a server
+  .addServer(`https://video-api-dev.gozle.org:7000`)
   .addServer(`${URL}:${PORT}`)
   .build();
 
