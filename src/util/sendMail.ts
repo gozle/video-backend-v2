@@ -1,23 +1,19 @@
-const nodemailer = require('nodemailer');
-
 import * as dotenv from 'dotenv';
 
+var nodemailer = require('nodemailer');
 dotenv.config();
 
-const NodeCache = require('node-cache');
-const myCache = new NodeCache({ stdTTL: 300, checkperiod: 320 });
-
-const pass = process.env.EMAIL_PASSWORD;
-
-let transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: process.env.EMAIL_PORT,
-  secure: false,
   auth: {
     user: process.env.EMAIL_USERNAME,
     pass: process.env.EMAIL_PASSWORD,
   },
 });
+
+const NodeCache = require('node-cache');
+const myCache = new NodeCache({ stdTTL: 300, checkperiod: 320 });
 
 exports.sendEmailMessage = async (email, message) => {
   let mails = {
@@ -27,14 +23,20 @@ exports.sendEmailMessage = async (email, message) => {
     html: message,
   };
 
-  await transporter.sendMail(mails, (err, data) => {
-    if (err) {
-      myCache.take(`${email}`, true);
-      console.log(err);
-      return false;
-    } else {
-      console.log('gitdi');
-      return true;
-    }
-  });
+  transporter.sendMail(
+    {
+      from: `Gozle Video <video@gozle.org>`,
+      subject: 'Test',
+      to: 'rowshan_97@mail.ru',
+      text: 'Test',
+    },
+    (error, info) => {
+      if (error) {
+        myCache.take(`${email}`, true);
+        console.log('Error:', error);
+      } else {
+        console.log('Email sent:', info.response);
+      }
+    },
+  );
 };
