@@ -22,7 +22,7 @@ import {
   HasOneGetAssociationMixin,
   HasOneSetAssociationMixin,
 } from 'sequelize';
-import { IsByteLength, IsEmail, Validate } from 'class-validator';
+import { IsByteLength, IsEmail, IsString, Validate } from 'class-validator';
 import { MatchPassword } from '../validation/match_pass.validator';
 import { IsPhone } from '../validation/tel_number.validator';
 import { EmailInDb } from '../validation/email.validator';
@@ -50,13 +50,13 @@ export class User extends Model {
   // fullName: string;
 
   @Unique
+  @IsString()
   @Column({ type: DataType.STRING, allowNull: false })
   username: string;
 
   @IsEmail()
   @ApiProperty()
   @Unique
-  @Validate(EmailInDb, ['username'])
   @Column({ type: DataType.STRING, allowNull: false })
   email: string;
 

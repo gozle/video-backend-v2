@@ -7,14 +7,16 @@ dotenv.config();
 const NodeCache = require('node-cache');
 const myCache = new NodeCache({ stdTTL: 300, checkperiod: 320 });
 
+const pass = process.env.EMAIL_PASSWORD;
+
 let transporter = nodemailer.createTransport({
-  host: process.env.EmailHost,
-  port: process.env.EmailPort,
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
   secure: false,
   from: 'gozle.org',
   auth: {
-    user: process.env.EmailuserName,
-    pass: process.env.EmailpassKey,
+    user: `${process.env.EMAIL_USERNAME}`,
+    pass: `${pass}`,
   },
 });
 
@@ -29,6 +31,7 @@ exports.sendEmailMessage = async (email, message) => {
   await transporter.sendMail(mails, (err, data) => {
     if (err) {
       myCache.take(`${email}`, true);
+      console.log(err);
       return false;
     } else {
       return true;

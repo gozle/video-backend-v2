@@ -20,12 +20,14 @@ import { ChannelPlaylistVideos } from 'src/models/channelPlaylistVideos';
 import { Language } from 'src/models/language.model';
 import { Translation } from 'src/models/translations.model';
 
+const config: IDatabaseConfigAttributes = dataBaseConfig.dev;
+const databaseUri = `${config.dialect}://${config.username}:${config.password}@${config.host}:${config.port}/${config.database}`;
+
 export const databaseProviders = [
   {
     provide: 'SEQUELIZE',
     useFactory: async () => {
-      let config: IDatabaseConfigAttributes = dataBaseConfig.dev;
-      const sequelize = new Sequelize(config);
+      const sequelize = new Sequelize(databaseUri, { logging: true });
       sequelize.addModels([
         User,
         UserHistory,

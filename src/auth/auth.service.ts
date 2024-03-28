@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   ForbiddenException,
   Inject,
   Injectable,
@@ -14,26 +15,28 @@ import * as bcrypt from 'bcrypt';
 const sendEmail = require('../util/sendMail');
 import * as conf from '../config/config.json';
 import * as dotenv from 'dotenv';
+import { Op } from 'sequelize';
 
 dotenv.config();
 
-const access_secret = process.env.accessSecret || conf.accessSecret;
-const refrsh_secret = process.env.refreshSecret || conf.refreshSecret;
+const access_secret = process.env.ACCESS_SECRET || conf.accessSecret;
+const refrsh_secret = process.env.REFRESH_SECRET || conf.refreshSecret;
+const verify_secret = process.env.EMAIL_VER_SECRET;
 
 const accesOption = {
-  secret: '',
+  secret: access_secret,
   expiresIn: '1h',
 };
 const NodeCache = require('node-cache');
 const myCache = new NodeCache({ stdTTL: 300, checkperiod: 320 });
 
 const refreshOption = {
-  secret: 'refresh_secret_gozle_video_premium',
+  secret: refrsh_secret,
   expiresIn: '15d',
 };
 
 const verifyOption = {
-  secret: 'verify_token_here',
+  secret: verify_secret,
 };
 
 @Injectable()
@@ -49,42 +52,63 @@ export class AuthService {
     try {
       const hashed = await bcrypt.hash(data.password, 12);
 
-      let us = await User.findOne({ where: { email: data.email } });
+      let us = await User.findOne({
+        where: {
+          [Op.or]: [{ email: data.email }, { username: data.username }],
+        },
+      });
 
-      if (us && !us.isVerify) {
-        const payload1 = { id: us.id, email: us.email };
-        const emailToken = await this.jwtService.signAsync(
-          payload1,
-          verifyOption,
-        );
-        const hasSent = myCache.get(`${us.email}`);
+      let hasError = { err: false, msg: '' };
 
-        if (!hasSent) {
-          let mailText = `<h1> Salam! 🖐🏻</h1>
-        </br>
-        </br>
-        <h3>Gözle wideo E-mail adresiňizi tassyklamak üçin aşakdaky baglanyşygy ulanmagyňyzy haýyş edýäris!</h3>
-        </br>
-        <h3>Eger bu saýtda registrasiýa etmedik bolsaňyz, bu habary äsgermezlik ediň ýa-da pozuň.!</h3>
-        </br>
-        </br>
-        <a href="${conf.url}/api/auth/verify/email/${emailToken}">${conf.url}/api/auth/verify/email/${emailToken}</a>
-        Registrasiýaňyz üçin sag boluň!
-        </br>
-        Gözle topary!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
-        `;
-          myCache.set(`${us.email}`, true);
-          let send = await sendEmail.sendEmailMessage(data.email, mailText);
-        }
-        return { message: 'Succesfully sent link to E-mail address!' };
+      if (us && us.username == data.username) {
+        hasError.err = true;
+        hasError.msg = 'This username already exists. Please try another one!';
       }
 
-      const telNumber = data.tel || null;
+      if (us && us.email == data.email) {
+        if (!us.isVerify) {
+          const payload1 = { id: us.id, email: us.email };
+          const emailToken = await this.jwtService.signAsync(
+            payload1,
+            verifyOption,
+          );
+          const hasSent = myCache.get(`${us.email}`);
+
+          if (!hasSent) {
+            let mailText = `<h1> Salam! 🖐🏻</h1>
+            </br>
+            </br>
+            <h3>Gözle wideo E-mail adresiňizi tassyklamak üçin aşakdaky baglanyşygy ulanmagyňyzy haýyş edýäris!</h3>
+            </br>
+            <h3>Eger bu saýtda registrasiýa etmedik bolsaňyz, bu habary äsgermezlik ediň ýa-da pozuň.!</h3>
+            </br>
+            </br>
+            <a href="${conf.url}/api/auth/verify/email/${emailToken}">${conf.url}/api/auth/verify/email/${emailToken}</a>
+            Registrasiýaňyz üçin sag boluň!
+            </br>
+            Gözle topary!
+            `;
+            myCache.set(`${us.email}`, true, 300);
+            let send = await sendEmail.sendEmailMessage(data.email, mailText);
+          }
+          hasError.err = true;
+          hasError.msg =
+            'This e-mail address already exists or not verified. Please try another one or verify it!';
+        } else {
+          hasError.err = true;
+          hasError.msg =
+            'This e-mail address already exists. Please try another one or Log in';
+        }
+      }
+      if (hasError.err) {
+        throw new ConflictException(hasError.msg);
+      }
+
       const user = await User.create({
         username: data.username,
         email: data.email,
         password: hashed,
-        tel_number: telNumber,
+
         avatar: file,
         isVerify: false,
       });
@@ -122,7 +146,7 @@ export class AuthService {
       return { message: 'Succesfully sent link to E-mail address!' };
     } catch (err) {
       console.log(err);
-      throw new InternalServerErrorException(err);
+      throw err;
     }
   }
 

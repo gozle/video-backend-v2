@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { User } from '../models/user.model';
+import * as CONSTANTS from './auth.constants';
 
 import {
   ApiBody,
@@ -39,7 +40,7 @@ const multerOptions: {} = {
     },
   }),
   fileFilter: (req, file, cb) => {
-    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    const allowedMimes = CONSTANTS.MIME_TIPES;
     if (allowedMimes.includes(file.mimetype)) {
       cb(null, true);
     } else {
@@ -80,9 +81,9 @@ export class AuthController {
         conPassword: {
           type: 'string',
         },
-        tel: {
-          type: 'number',
-        },
+        // tel: {
+        //   type: 'number',
+        // },
         avatar: {
           type: 'file',
         },
@@ -107,7 +108,7 @@ export class AuthController {
 
   @ApiOperation({
     summary: 'Login',
-    description: 'Login edenden son access_token we refresh_token berilyar',
+    description: 'Login eden son access_token we refresh_token berilyar',
   })
   @Post('login')
   login(@Body(new ValidationPipe()) body: LoginDto) {
@@ -118,10 +119,10 @@ export class AuthController {
   @ApiOperation({
     summary: 'New access_token',
     description:
-      'autoLogin refrsh_token ugrat taze access_token we refresh token berya breyar',
+      'autoLogin refrsh_token ugrat taze access_token we refresh token berya',
   })
   @ApiHeader({ name: 'refresh_token' })
-  @Get('/reNewAccessToken')
+  @Get('/new-')
   async getNewToken(@Request() req) {
     return await this.authService.reNewToken(req.user);
   }
