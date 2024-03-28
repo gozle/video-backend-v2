@@ -3,7 +3,6 @@ const nodemailer = require('nodemailer');
 import * as dotenv from 'dotenv';
 
 dotenv.config();
-// dotenv.configDotenv();
 
 const NodeCache = require('node-cache');
 const myCache = new NodeCache({ stdTTL: 300, checkperiod: 320 });
@@ -14,7 +13,6 @@ let transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: process.env.EMAIL_PORT,
   secure: false,
-
   auth: {
     user: process.env.EMAIL_USERNAME,
     pass: process.env.EMAIL_PASSWORD,
@@ -23,7 +21,7 @@ let transporter = nodemailer.createTransport({
 
 exports.sendEmailMessage = async (email, message) => {
   let mails = {
-    from: 'video',
+    form: ` Gozle <${process.env.EMAIL_USERNAME}>`,
     to: email,
     subject: 'Gözle Wideo registrasiýa',
     html: message,
