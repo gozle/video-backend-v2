@@ -18,7 +18,7 @@ const config = new DocumentBuilder()
   .setTitle('Gozle_video swagger')
   .setDescription('The _video API routes')
   .setVersion('1.0')
-  .addServer('http://localhost:7000') // Add a server
+  .addServer('http://localhost:8000') // Add a server
   .addServer(`${URL}`)
   .addServer(`${URL}:${PORT}`)
   .build();

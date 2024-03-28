@@ -3,6 +3,7 @@ const nodemailer = require('nodemailer');
 import * as dotenv from 'dotenv';
 
 dotenv.config();
+// dotenv.configDotenv();
 
 const NodeCache = require('node-cache');
 const myCache = new NodeCache({ stdTTL: 300, checkperiod: 320 });
@@ -13,16 +14,16 @@ let transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: process.env.EMAIL_PORT,
   secure: false,
-  from: 'gozle.org',
+
   auth: {
-    user: `${process.env.EMAIL_USERNAME}`,
-    pass: `${pass}`,
+    user: process.env.EMAIL_USERNAME,
+    pass: process.env.EMAIL_PASSWORD,
   },
 });
 
 exports.sendEmailMessage = async (email, message) => {
   let mails = {
-    from: 'gozle.org',
+    from: 'video',
     to: email,
     subject: 'Gözle Wideo registrasiýa',
     html: message,
@@ -34,6 +35,7 @@ exports.sendEmailMessage = async (email, message) => {
       console.log(err);
       return false;
     } else {
+      console.log('gitdi');
       return true;
     }
   });
