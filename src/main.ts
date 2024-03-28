@@ -19,7 +19,7 @@ const config = new DocumentBuilder()
   .setDescription('The _video API routes')
   .setVersion('1.0')
   .addServer('http://localhost:7000') // Add a server
-  .addServer(`https://video-api-dev.gozle.org:7000`)
+  .addServer(`${URL}`)
   .addServer(`${URL}:${PORT}`)
   .build();
 
