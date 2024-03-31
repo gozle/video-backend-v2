@@ -6,34 +6,52 @@ import {
   Request,
   UseGuards,
   Headers,
+  Query,
 } from '@nestjs/common';
 import { AppService } from './app.service';
-import { ApiHeader, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { getUserInfo } from './common/guards/getUserInfo.guard';
+import {
+  ApiHeader,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthGuard } from './common/guards/auth.guard';
-import { GetLanguage } from './validation/getLanguage.guard';
 
 @ApiTags('main')
 @Controller('api')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @UseGuards(getUserInfo)
   @ApiHeader({ name: 'access_token' })
   @ApiHeader({ name: 'accept-language' })
-  @Get('main')
-  getMain(@Request() req: any): Promise<any> {
-    return this.appService.getMain(req.user, req.lang);
+  @Get('sidebar')
+  getSideBar(@Request() req: any): Promise<any> {
+    return this.appService.getSideBar(req.user, req.lang);
   }
 
-  @UseGuards(getUserInfo)
+  @ApiOperation({
+    summary: 'Getting videos',
+    description: 'Getting all videos or main page videos from here!',
+  })
+  @ApiHeader({ name: 'access_token' })
+  @ApiQuery({ name: 'limit', required: false, example: '20' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'genre', required: false })
+  @Get('videos')
+  getMain(
+    @Request() req: any,
+    @Query() query: { limit: string; genre: string; page: string },
+  ): Promise<any> {
+    return this.appService.getVideos(req.user, req.lang, query);
+  }
+
   @ApiHeader({ name: 'access_token', required: false })
   @Get('channels')
   getChannels(@Request() req: any): Promise<any> {
     return this.appService.getChannels(req.user);
   }
 
-  @UseGuards(getUserInfo)
   @Get('video/:id')
   @ApiHeader({ name: 'access_token', required: false })
   @ApiQuery({ name: 'page', required: false })
@@ -41,7 +59,6 @@ export class AppController {
     return this.appService.videoid(id, req);
   }
 
-  @UseGuards(getUserInfo)
   @ApiHeader({ name: 'access_token', required: false })
   @ApiQuery({ name: 'page', required: false })
   @Get('channel/:id')

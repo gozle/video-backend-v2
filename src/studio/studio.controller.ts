@@ -85,7 +85,6 @@ export class StudioController {
   ////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////
 
-  @Get('')
   @UseGuards(AuthGuard)
   @ApiHeader({ name: 'access_token' })
   @ApiConsumes('multipart/form-data')

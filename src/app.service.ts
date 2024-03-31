@@ -11,7 +11,8 @@ import { Language } from './models/language.model';
 
 @Injectable()
 export class AppService {
-  async getMain(userPayload, lang): Promise<any> {
+  async getSideBar(userPayload, lang): Promise<any> {
+    console.log(lang);
     const user = await User.findByPk(userPayload.id);
     let subscription = [];
     if (user) {
@@ -36,9 +37,17 @@ export class AppService {
 
     let genres = await Genre.findAll({ limit: 7 });
 
+    return { subscriptions: subscription, genres };
+  }
+
+  async getVideos(user, lang, query) {
+    console.log(query);
+    let videoLimit = query.limit || 20;
+    let page = query.page || 1;
+    let genre = query.genre || null;
     const videos = await Video.findAll({
-      limit: 25,
-      offset: 0,
+      limit: videoLimit,
+      offset: (page - 1) * videoLimit,
       where: { status: 'ok' },
       attributes: [
         'id',
@@ -54,8 +63,7 @@ export class AppService {
         attributes: ['id', 'channel_name', 'avatar'],
       },
     });
-
-    return { subscription, videos };
+    return { videos };
   }
 
   async getChannels(user: { id: number }): Promise<any> {

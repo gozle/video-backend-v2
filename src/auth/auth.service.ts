@@ -45,6 +45,18 @@ export class AuthService {
     // private readonly userService: User
     private jwtService: JwtService,
   ) {}
+
+  /////////////////////////////////////////////////////////
+  //Get User Information for main page or other pages
+  /////////////////////////////////////////////////////////
+
+  async getUserInfo(payload: { id: number; username: string }) {
+    const user = await User.findByPk(payload.id, {
+      attributes: ['username', 'avatar'],
+    });
+    return { user };
+  }
+
   /////////////////////////////////////////////////////////
   //  Register
   /////////////////////////////////////////////////////////
@@ -145,7 +157,6 @@ export class AuthService {
 
       return { message: 'Succesfully sent link to E-mail address!' };
     } catch (err) {
-      console.log(err);
       throw err;
     }
   }

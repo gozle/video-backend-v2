@@ -6,6 +6,11 @@ import { getVideoDuration } from 'src/util/getVideoDuration';
 import { JwtModule } from '@nestjs/jwt';
 import * as jwt from 'jsonwebtoken';
 import { ChannelPlaylist } from 'src/models/playlistChannel.model';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
+
+const video_secret = process.env.VIDEO_UPLOAD_SECRET;
 
 @Injectable()
 export class StudioService {
@@ -27,7 +32,7 @@ export class StudioService {
 
     const payload = { videoId: video.id, userId: userId, channelId: channelId };
 
-    const uploadToken = jwt.sign(payload, 'signKey');
+    const uploadToken = jwt.sign(payload, video_secret);
 
     const playlists = await channel.getChannelPlaylists({
       attributes: ['id', 'name'],
@@ -36,18 +41,27 @@ export class StudioService {
     return { uploadToken, videoId: video.id, playlists };
   }
 
-  async faddVideoSetting(body, file, user, channel, videoUUID, uploadToken) {
-    const payload: any = jwt.verify(uploadToken, 'signKey');
+  async faddVideoSetting(body, file, userId, channelId, videoId, uploadToken) {
+    const payload: any = jwt.verify(uploadToken, video_secret);
     const video = await Video.findByPk(payload.videoId);
-    // if (video.uuid != videoUUID || video.status == 'ok') {
-    //   throw new ForbiddenException();
-    // }
+    if (video.status != 'upload' || video.channelId != channelId) {
+      if (file) {
+        deleteFile(file.path);
+      }
+      throw new ForbiddenException();
+    }
+
+    let thumbnail = null;
+
+    if (file) {
+      thumbnail = file.path;
+    }
 
     video.update({
       title: body.title,
       genreId: body.genreId,
       description: body.description,
-      thumbnail: file.path,
+      thumbnail: thumbnail,
       status: 'ok',
     });
 

@@ -5,14 +5,10 @@ import {
   PrimaryKey,
   AutoIncrement,
   DataType,
-  HasMany,
   BelongsTo,
   ForeignKey,
 } from 'sequelize-typescript';
 
-import { Video } from './video.model';
-import { User } from './user.model';
-import { NonAttribute } from 'sequelize';
 import { Language } from './language.model';
 
 @Table

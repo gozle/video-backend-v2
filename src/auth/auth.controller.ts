@@ -30,6 +30,7 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 import { LoginDto } from './dto/login.dto';
 import { RefreshToken } from 'src/common/guards/refresh-token.guard';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 const multerOptions: {} = {
   storage: diskStorage({
@@ -53,6 +54,17 @@ const multerOptions: {} = {
 @Controller('api/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: 'Get user informations',
+    description: 'get user informations everywhere',
+  })
+  @ApiHeader({ name: 'access_token' })
+  @Get('/get-info')
+  async getuserInfo(@Request() req) {
+    return await this.authService.getUserInfo(req.user);
+  }
 
   @ApiOperation({
     summary: 'Registration',
@@ -122,7 +134,7 @@ export class AuthController {
       'autoLogin refrsh_token ugrat taze access_token we refresh token berya',
   })
   @ApiHeader({ name: 'refresh_token' })
-  @Get('/new-')
+  @Get('/new-access-token')
   async getNewToken(@Request() req) {
     return await this.authService.reNewToken(req.user);
   }
