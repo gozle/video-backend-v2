@@ -12,6 +12,7 @@ import { join } from 'path';
 import { AdminModule } from './admin/admin.module';
 import { JwtModule } from '@nestjs/jwt';
 import { getUserInfo } from './common/middlewares/getUserInfo.midle';
+import { GetLanguage } from './common/middlewares/getLanguage.middle';
 
 @Module({
   imports: [
@@ -29,5 +30,6 @@ import { getUserInfo } from './common/middlewares/getUserInfo.midle';
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(getUserInfo).forRoutes(AppController);
+    consumer.apply(GetLanguage).forRoutes(AppController);
   }
 }

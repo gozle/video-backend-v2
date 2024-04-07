@@ -19,24 +19,26 @@ import {
 import {
   FileFieldsInterceptor,
   FileInterceptor,
-  FilesInterceptor,
 } from '@nestjs/platform-express';
-import * as path from 'path';
 
 import * as multer from 'multer';
-
-const dest = 'uploads';
+import {
+  VIDEO_DESTINATION,
+  IMAGE_MIME_TIPES,
+  THUMBNAIL_DESTINATION,
+  VIDEO_MIME_TIPES,
+} from './studio.constants';
 
 const multerVideoOptions: {} = {
   storage: multer.diskStorage({
-    destination: `${dest}/videoUploads`,
+    destination: VIDEO_DESTINATION,
     filename: (req, file, cb) => {
       const filename = `${Date.now()}_${file.originalname}`;
       cb(null, filename);
     },
   }),
   fileFilter: (req, file, cb) => {
-    const allowedMimes = ['video/mp4', 'video/ts'];
+    const allowedMimes = VIDEO_MIME_TIPES;
     if (allowedMimes.includes(file.mimetype)) {
       cb(null, true);
     } else {
@@ -47,14 +49,14 @@ const multerVideoOptions: {} = {
 
 const multerThumbnailOptions: {} = {
   storage: multer.diskStorage({
-    destination: `${dest}/thumbnails`,
+    destination: THUMBNAIL_DESTINATION,
     filename: (req, file, cb) => {
       const filename = `${Date.now()}_${file.originalname}`;
       cb(null, filename);
     },
   }),
   fileFilter: (req, file, cb) => {
-    const allowedMimes = ['image/webp', 'image/jpeg', 'image/jpg', 'image/png'];
+    const allowedMimes = IMAGE_MIME_TIPES;
     if (allowedMimes.includes(file.mimetype)) {
       cb(null, true);
     } else {
@@ -228,7 +230,7 @@ export class StudioController {
   }
 
   @UseGuards(AuthGuard)
-  @ApiHeader({ name: 'access_token' })
+  @ApiHeader({ name: 'access_token', required: true })
   @ApiBody({
     schema: {
       type: 'object',

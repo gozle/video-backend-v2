@@ -8,7 +8,6 @@ import {
   HasMany,
 } from 'sequelize-typescript';
 
-import { Video } from './video.model';
 import { Translation } from './translations.model';
 
 @Table

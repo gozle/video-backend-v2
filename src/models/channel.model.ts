@@ -48,6 +48,10 @@ export class Channel extends Model {
   @HasMany(() => Video)
   videos!: Video[];
 
+  @Unique
+  @Column({ type: DataType.STRING, allowNull: false })
+  publicId: string;
+
   @HasMany(() => Subscription)
   subscription!: Subscription[];
 

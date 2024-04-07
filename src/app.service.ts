@@ -8,12 +8,13 @@ import { UserHistory } from './models/userHistory.model';
 import { Subscription } from './models/subscription.model';
 import { Genre } from './models/genre.model';
 import { Language } from './models/language.model';
+import { Translation } from './models/translations.model';
 
 @Injectable()
 export class AppService {
   async getSideBar(userPayload, lang): Promise<any> {
-    console.log(lang);
     const user = await User.findByPk(userPayload.id);
+
     let subscription = [];
     if (user) {
       subscription = await user.getSubscription({
@@ -35,7 +36,18 @@ export class AppService {
       });
     }
 
-    let genres = await Genre.findAll({ limit: 7 });
+    let genres = await Genre.findAll({
+      limit: 7,
+      attributes: [
+        'name',
+        [
+          Sequelize.literal(
+            `( SELECT text FROM "Translations" WHERE "Translations"."object_id" =  "Genre"."id" AND "Translations"."object_type" =  'genre' AND "Translations"."languageId" =  ${lang} )`,
+          ),
+          'name',
+        ],
+      ],
+    });
 
     return { subscriptions: subscription, genres };
   }
@@ -45,24 +57,48 @@ export class AppService {
     let videoLimit = query.limit || 20;
     let page = query.page || 1;
     let genre = query.genre || null;
-    const videos = await Video.findAll({
-      limit: videoLimit,
-      offset: (page - 1) * videoLimit,
-      where: { status: 'ok' },
-      attributes: [
-        'id',
-        'title',
-        'video_path',
-        'views',
-        'thumbnail',
-        'channelId',
-        'createdAt',
-      ],
-      include: {
-        model: Channel,
-        attributes: ['id', 'channel_name', 'avatar'],
-      },
-    });
+    let videos;
+
+    if (genre) {
+      videos = await Video.findAll({
+        limit: videoLimit,
+        offset: (page - 1) * videoLimit,
+        where: { status: 'ok' },
+        attributes: [
+          'id',
+          'title',
+          'video_path',
+          'views',
+          'thumbnail',
+          'channelId',
+          'createdAt',
+        ],
+        include: {
+          model: Channel,
+          attributes: ['id', 'channel_name', 'avatar'],
+        },
+      });
+    } else {
+      videos = await Video.findAll({
+        limit: videoLimit,
+        offset: (page - 1) * videoLimit,
+        where: { status: 'ok' },
+        attributes: [
+          'id',
+          'title',
+          'video_path',
+          'views',
+          'thumbnail',
+          'channelId',
+          'createdAt',
+        ],
+        include: {
+          model: Channel,
+          attributes: ['id', 'channel_name', 'avatar'],
+        },
+      });
+    }
+
     return { videos };
   }
 
@@ -135,7 +171,7 @@ export class AppService {
     const user = req.user;
 
     try {
-      const video: Video = await Video.findByPk(id, {
+      let video: Video = await Video.findByPk(id, {
         attributes: {
           exclude: ['updatedAt'],
 
@@ -161,10 +197,19 @@ export class AppService {
           ],
         },
       });
+      video.views = video.views + 1;
+      video.save();
 
       const channel = await video.getChannel({
         attributes: {
-          exclude: ['profilePhoto', 'description', 'createdAt', 'updatedAt'],
+          exclude: [
+            'profilePhoto',
+            'description',
+            'createdAt',
+            'updatedAt',
+            'userId',
+            'genreId',
+          ],
           include: [
             [
               Sequelize.literal(

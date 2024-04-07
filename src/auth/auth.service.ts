@@ -16,6 +16,7 @@ const sendEmail = require('../util/sendMail');
 import * as conf from '../config/config.json';
 import * as dotenv from 'dotenv';
 import { Op } from 'sequelize';
+import { Language } from 'src/models/language.model';
 
 dotenv.config();
 
@@ -54,7 +55,10 @@ export class AuthService {
     const user = await User.findByPk(payload.id, {
       attributes: ['username', 'avatar'],
     });
-    return { user };
+    const languages = await Language.findAll({
+      attributes: [['shortName', 'name']],
+    });
+    return { languages, user };
   }
 
   /////////////////////////////////////////////////////////

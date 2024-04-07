@@ -26,7 +26,11 @@ export class AppController {
   @ApiHeader({ name: 'access_token' })
   @ApiHeader({ name: 'accept-language' })
   @Get('sidebar')
-  getSideBar(@Request() req: any): Promise<any> {
+  getSideBar(
+    @Request() req: any,
+    @Headers('accept-language') lang: string,
+  ): Promise<any> {
+    console.log(req.lang);
     return this.appService.getSideBar(req.user, req.lang);
   }
 

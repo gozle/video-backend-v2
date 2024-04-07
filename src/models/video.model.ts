@@ -9,6 +9,7 @@ import {
   HasMany,
   BelongsToMany,
   DataType,
+  Unique,
 } from 'sequelize-typescript';
 // import { Channel } from './channel.model'
 import { Comment } from './comment.model';
@@ -65,8 +66,12 @@ export class Video extends Model {
   @Column(DataType.STRING)
   status: string;
 
+  @Unique
+  @Column({ type: DataType.STRING, allowNull: false })
+  publicId: string;
+
   @ForeignKey(() => Channel)
-  @Column
+  @Column({ type: DataType.BIGINT, allowNull: false })
   channelId!: number;
 
   @BelongsTo(() => Channel)

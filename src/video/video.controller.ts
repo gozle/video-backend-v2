@@ -12,7 +12,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { VideoService } from './video.service';
-import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiConsumes, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { statSync, createReadStream } from 'fs';
 import { Reaction } from 'src/validation/reaction.validator';
 import { AuthGuard } from 'src/common/guards/auth.guard';
@@ -23,6 +23,7 @@ export class VideoController {
   constructor(private readonly videoService: VideoService) {}
 
   @Get('video/:videoId/related')
+  @ApiQuery({ name: 'type', required: false })
   @ApiOperation({
     summary: 'For related videos',
     description: 'need when open video',

@@ -18,11 +18,11 @@ export class Translation extends Model {
   @Column
   id!: number;
 
-  @Column(DataType.STRING)
-  object_type: string;
+  @Column(DataType.BIGINT)
+  object_id: string;
 
   @Column(DataType.STRING)
-  object_id: string;
+  object_type: string;
 
   @Column({ type: DataType.TEXT })
   text: string;

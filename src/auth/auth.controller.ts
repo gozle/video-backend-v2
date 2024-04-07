@@ -55,7 +55,6 @@ const multerOptions: {} = {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @UseGuards(AuthGuard)
   @ApiOperation({
     summary: 'Get user informations',
     description: 'get user informations everywhere',
