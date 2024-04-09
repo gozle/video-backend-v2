@@ -31,6 +31,6 @@ export class Translation extends Model {
   language: Language;
 
   @ForeignKey(() => Language)
-  @Column({ type: DataType.INTEGER })
+  @Column({ type: DataType.BIGINT })
   languageId: number;
 }

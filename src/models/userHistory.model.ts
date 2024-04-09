@@ -31,9 +31,9 @@ export class UserHistory extends Model {
   declare user?: NonAttribute<User>;
 
   @ForeignKey(() => User)
-  @Column(DataType.INTEGER)
+  @Column(DataType.BIGINT)
   userId!: number;
 
-  @Column(DataType.INTEGER)
+  @Column(DataType.BIGINT)
   wathTime: number;
 }

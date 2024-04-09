@@ -10,6 +10,7 @@ import {
   Headers,
   Query,
   Request,
+  Put,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
@@ -17,6 +18,7 @@ import {
   ApiConsumes,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { Reaction } from 'src/validation/reaction.validator';
@@ -25,6 +27,7 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 @Controller('api')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
   @ApiTags('User Actions')
   @ApiOperation({
     summary: 'For like/dislike. Write like or dislike in reaction',
@@ -35,13 +38,15 @@ export class UserController {
   addReaction(
     @Query('reaction') reaction: string,
     @Headers('access_token') token: string,
-    @Param('videoId') videoId: number,
+    @Param('videoId') videoId: string,
     @Request() req: any,
   ) {
     return this.userService.addReaction(req.user.id, videoId, reaction);
   }
-
+  /////////////////////////////////////////////////////////////////////////////////
   //Subscribe
+  /////////////////////////////////////////////////////////////////////////////////
+
   @ApiTags('User Actions')
   @ApiOperation({
     summary: 'For subscribe/unsubscribe  in reaction',
@@ -50,13 +55,14 @@ export class UserController {
   @Post('/channel/:channelId/subscribe')
   addSubscribe(
     @Headers('access_token') token: string,
-    @Param('channelId') channelId: number,
+    @Param('channelId') channelId: string,
     @Request() req: any,
   ) {
     return this.userService.subscribe(req.user.id, channelId);
   }
-
+  ////////////////////////////////////////////////////////////////////////////////
   //Playlist
+  ////////////////////////////////////////////////////////////////////////////////
   @ApiTags('User Playlist')
   @ApiOperation({
     summary: 'For get user playlists',
@@ -193,5 +199,95 @@ export class UserController {
       videoId,
       req.user.id,
     );
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////
+  //Comment
+  /////////////////////////////////////////////////////////////////////////////////////////
+
+  @ApiTags('User Actions')
+  @ApiOperation({
+    summary: 'For add user comment',
+  })
+  @ApiConsumes('application/json')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        text: {
+          type: 'string',
+        },
+      },
+    },
+  })
+  @ApiParam({ name: 'videoId' })
+  @ApiQuery({ name: 'parent', required: false })
+  @UseGuards(AuthGuard)
+  @Post('/video/:videoId/add-comment')
+  userAddComment(
+    @Headers('access_token') token: string,
+    @Request() req: any,
+    @Param('videoId') videoId: any,
+    @Query('parent') parentId: string,
+    @Body() body: any,
+  ) {
+    return this.userService.fuserAddComment(
+      videoId,
+      req.user.id,
+      body,
+      parentId,
+    );
+  }
+
+  @ApiTags('User Actions')
+  @ApiOperation({
+    summary: 'For edit user comment',
+  })
+  @ApiConsumes('application/json')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        text: {
+          type: 'string',
+        },
+      },
+    },
+  })
+  @ApiParam({ name: 'videoId' })
+  @ApiParam({ name: 'commentId' })
+  @UseGuards(AuthGuard)
+  @Put('/video/:videoId/edit-comment/:commentId')
+  userEditComment(
+    @Headers('access_token') token: string,
+    @Request() req: any,
+    @Param('videoId') videoId: string,
+    @Param('commentId') commentId: string,
+    @Body() body: any,
+  ) {
+    return this.userService.fuserEditComment(
+      videoId,
+      req.user.id,
+      body,
+      commentId,
+    );
+  }
+
+  @ApiTags('User Actions')
+  @ApiOperation({
+    summary: 'For delete user comment',
+  })
+  @ApiParam({ name: 'videoId' })
+  @ApiParam({ name: 'commentId' })
+  @UseGuards(AuthGuard)
+  @Delete('/video/:videoId/delete-comment/:commentId')
+  userDeleteComment(
+    @Headers('access_token') token: string,
+    @Request() req: any,
+    @Param('videoId') videoId: string,
+    @Param('commentId') commentId: string,
+    @Body() body: any,
+  ) {
+    return this.userService.fuserDeleteComment(videoId, req.user.id, commentId);
   }
 }

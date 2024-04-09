@@ -6,22 +6,25 @@ import { Video } from 'src/models/video.model';
 
 @Injectable()
 export class VideoService {
-  async fRelatedVideos(videoId: number, type: string) {
-    const video = await Video.findByPk(videoId);
+  async fRelatedVideos(videoId: string, type: string) {
+    const video = await Video.findOne({ where: { publicId: videoId } });
     if (type === 'channel') {
       const videos = await Video.findAll({
         where: { channelId: video.channelId, [Op.not]: { id: video.id } },
-        attributes: [
-          'id',
-          'title',
-          'thumbnail',
-          'views',
-          'duration',
-          'createdAt',
-        ],
         include: {
           model: Channel,
-          attributes: ['id', 'channel_name'],
+          attributes: [['publicId', 'id'], 'channel_name', 'avatar'],
+        },
+        attributes: {
+          include: [['publicId', 'id']],
+          exclude: [
+            'channelId',
+            'status',
+            'description',
+            'genreId',
+            'publicId',
+            'updatedAt',
+          ],
         },
       });
       return { videos };
@@ -29,40 +32,42 @@ export class VideoService {
     if (type === 'genre') {
       const videos = await Video.findAll({
         where: { genreId: video.genreId, [Op.not]: { id: video.id } },
-        attributes: [
-          'id',
-          'title',
-          'thumbnail',
-          'views',
-          'duration',
-          'createdAt',
-          'genreId',
-        ],
         include: {
           model: Channel,
-          attributes: ['id', 'channel_name'],
+          attributes: [['publicId', 'id'], 'channel_name', 'avatar'],
+        },
+        attributes: {
+          include: [['publicId', 'id']],
+          exclude: [
+            'channelId',
+            'status',
+            'description',
+            'genreId',
+            'publicId',
+            'updatedAt',
+          ],
         },
       });
       return { videos };
     }
 
     const videos = await Video.findAll({
-      where: {
-        [Op.or]: { genreId: video.genreId, channelId: video.channelId },
-        // [Op.not]: { id: video.id },
-      },
-      attributes: [
-        'id',
-        'title',
-        'thumbnail',
-        'views',
-        'duration',
-        'createdAt',
-        'genreId',
-      ],
+      where: { [Op.not]: { id: video.id } },
+      // [Op.not]: { id: video.id },
       include: {
         model: Channel,
-        attributes: ['id', 'channel_name'],
+        attributes: [['publicId', 'id'], 'channel_name', 'avatar'],
+      },
+      attributes: {
+        include: [['publicId', 'id']],
+        exclude: [
+          'channelId',
+          'status',
+          'description',
+          'genreId',
+          'publicId',
+          'updatedAt',
+        ],
       },
     });
     return { videos };

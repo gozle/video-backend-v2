@@ -33,7 +33,7 @@ export class Like extends Model {
   user!: User;
 
   @ForeignKey(() => User)
-  @Column(DataType.INTEGER)
+  @Column(DataType.BIGINT)
   userId!: number;
 
   @Column(DataType.STRING)

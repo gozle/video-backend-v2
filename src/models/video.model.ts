@@ -17,6 +17,7 @@ import { Like } from './like.model';
 
 import {
   BelongsToGetAssociationMixin,
+  HasManyAddAssociationMixin,
   HasManyGetAssociationsMixin,
   HasManySetAssociationsMixin,
   NonAttribute,
@@ -35,15 +36,8 @@ import { ChannelPlaylistVideos } from './channelPlaylistVideos';
 export class Video extends Model {
   @AutoIncrement
   @PrimaryKey
-  @Column(DataType.INTEGER)
+  @Column(DataType.BIGINT)
   id!: number;
-
-  // @Column({
-  // type: DataType.UUID, // Define the column as UUID
-  // defaultValue: DataType.UUIDV4, // Optionally set default value to generate a UUID on creation
-  // primaryKey: true, // Optionally set as primary key
-  // })
-  // uuid!: string;
 
   @Column(DataType.STRING)
   title: string;
@@ -54,7 +48,7 @@ export class Video extends Model {
   @Column(DataType.STRING)
   video_path: string;
 
-  @Column(DataType.INTEGER)
+  @Column(DataType.BIGINT)
   views: number;
 
   @Column(DataType.STRING)
@@ -89,9 +83,10 @@ export class Video extends Model {
   declare getGenre: BelongsToGetAssociationMixin<Genre>;
 
   @HasMany(() => Comment)
-  comments!: Comment;
+  comment!: Comment;
 
-  declare getComments: HasManyGetAssociationsMixin<Comment>;
+  declare getComment: HasManyGetAssociationsMixin<Comment>;
+  declare addComment: HasManyAddAssociationMixin<Comment, Comment['id']>;
 
   @HasMany(() => Like)
   like!: Like;

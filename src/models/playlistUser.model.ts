@@ -40,7 +40,7 @@ export class UserPlaylist extends Model {
   declare user?: NonAttribute<User>;
 
   @ForeignKey(() => User)
-  @Column(DataType.INTEGER)
+  @Column(DataType.BIGINT)
   userId!: number;
 
   @Column(DataType.TEXT)

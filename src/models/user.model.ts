@@ -39,7 +39,7 @@ import { Channel } from './channel.model';
 export class User extends Model {
   @AutoIncrement
   @PrimaryKey
-  @Column({ type: DataType.INTEGER, allowNull: false })
+  @Column({ type: DataType.BIGINT, allowNull: false })
   id!: number;
 
   // @IsString()
@@ -79,7 +79,7 @@ export class User extends Model {
   tel: number;
 
   @ApiProperty()
-  @Column(DataType.INTEGER)
+  @Column(DataType.BIGINT)
   tel_number: number;
 
   @Column(DataType.STRING)

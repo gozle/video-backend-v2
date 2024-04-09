@@ -78,7 +78,7 @@ export class Channel extends Model {
   declare user?: NonAttribute<User>;
 
   @ForeignKey(() => User)
-  @Column({ type: DataType.INTEGER, allowNull: false })
+  @Column({ type: DataType.BIGINT, allowNull: false })
   userId!: number;
 
   declare getUser: BelongsToGetAssociationMixin<User>;

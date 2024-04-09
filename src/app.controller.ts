@@ -59,14 +59,14 @@ export class AppController {
   @Get('video/:id')
   @ApiHeader({ name: 'access_token', required: false })
   @ApiQuery({ name: 'page', required: false })
-  videowithid(@Param('id') id: number, @Request() req: any): Promise<any> {
+  videowithid(@Param('id') id: string, @Request() req: any): Promise<any> {
     return this.appService.videoid(id, req);
   }
 
   @ApiHeader({ name: 'access_token', required: false })
   @ApiQuery({ name: 'page', required: false })
   @Get('channel/:id')
-  getChannel(@Param('id') id: number, @Request() req: any): Promise<any> {
+  getChannel(@Param('id') id: string, @Request() req: any): Promise<any> {
     return this.appService.getChannel(id, req);
   }
 

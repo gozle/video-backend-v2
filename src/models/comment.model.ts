@@ -7,38 +7,35 @@ import {
   ForeignKey,
   BelongsTo,
   DataType,
+  HasMany,
 } from 'sequelize-typescript';
 import { Video } from './video.model';
-import { NonAttribute } from 'sequelize';
 import { User } from './user.model';
 
 @Table
 export class Comment extends Model {
   @AutoIncrement
   @PrimaryKey
-  @Column(DataType.INTEGER)
+  @Column(DataType.BIGINT)
   id!: number;
 
   @Column(DataType.STRING)
-  comment: string;
-
-  @ForeignKey(() => Video)
-  @Column(DataType.INTEGER)
-  videoId!: number;
+  text: string;
 
   @BelongsTo(() => Video)
   video!: Video;
 
-  @ForeignKey(() => User)
-  @Column(DataType.INTEGER)
-  userId!: number;
+  @ForeignKey(() => Video)
+  @Column(DataType.BIGINT)
+  videoId!: number;
 
   @BelongsTo(() => User)
   user!: User;
 
-  @Column(DataType.INTEGER)
-  child: number;
-  //declare video?: NonAttribute<Video>;
+  @ForeignKey(() => User)
+  @Column(DataType.BIGINT)
+  userId!: number;
 
-  // declare user?: NonAttribute<User>;
+  @Column(DataType.BIGINT)
+  parent: number;
 }

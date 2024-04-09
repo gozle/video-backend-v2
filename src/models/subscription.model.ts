@@ -32,6 +32,6 @@ export class Subscription extends Model {
   user: User;
 
   @ForeignKey(() => User)
-  @Column(DataType.INTEGER)
+  @Column(DataType.BIGINT)
   userId!: number;
 }

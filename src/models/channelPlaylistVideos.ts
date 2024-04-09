@@ -21,14 +21,14 @@ export class ChannelPlaylistVideos extends Model {
 
   @ForeignKey(() => ChannelPlaylist)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.BIGINT,
     allowNull: false,
   })
   channelPlaylistId: number;
 
   @ForeignKey(() => Video)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.BIGINT,
     allowNull: false,
   })
   videoId: number;

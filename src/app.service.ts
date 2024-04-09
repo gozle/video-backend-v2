@@ -9,6 +9,7 @@ import { Subscription } from './models/subscription.model';
 import { Genre } from './models/genre.model';
 import { Language } from './models/language.model';
 import { Translation } from './models/translations.model';
+import { Comment } from './models/comment.model';
 
 @Injectable()
 export class AppService {
@@ -84,7 +85,7 @@ export class AppService {
         offset: (page - 1) * videoLimit,
         where: { status: 'ok' },
         attributes: [
-          'id',
+          ['publicId', 'id'],
           'title',
           'video_path',
           'views',
@@ -94,7 +95,7 @@ export class AppService {
         ],
         include: {
           model: Channel,
-          attributes: ['id', 'channel_name', 'avatar'],
+          attributes: [['publicId', 'id'], 'channel_name', 'avatar'],
         },
       });
     }
@@ -121,6 +122,7 @@ export class AppService {
             ),
             'isSubsCribe',
           ],
+          ['publicId', 'id'],
         ],
         exclude: ['updatedAt', 'createdAt', 'description', 'profilePhoto'],
       },
@@ -128,14 +130,15 @@ export class AppService {
     return { channels };
   }
 
-  async getChannel(id: number, req: any): Promise<any> {
+  async getChannel(id: string, req: any): Promise<any> {
     const page = req.query.page || 1;
     const user = req.user;
     const limitOfVideo = 15;
 
-    const channel = await Channel.findByPk(id, {
+    const channel = await Channel.findOne({
+      where: { publicId: id },
       attributes: {
-        exclude: ['updatedAt'],
+        exclude: ['updatedAt', 'userId'],
 
         include: [
           [
@@ -150,54 +153,67 @@ export class AppService {
             ),
             'isSubsCribe',
           ],
+          ['publicId', 'publicId'],
         ],
       },
       group: ['Channel.id'],
     });
 
-    const videos = await channel.getVideos({
-      limit: limitOfVideo,
-      where: { status: 'ok' },
-      offset: limitOfVideo * (page - 1),
-      attributes: {
-        exclude: ['updatedAt', 'description', 'channelId', 'video_path'],
-      },
-    });
-    return { channel, videos };
+    // const videos = await channel.getVideos({
+    //   limit: limitOfVideo,
+    //   where: { status: 'ok' },
+    //   offset: limitOfVideo * (page - 1),
+    //   attributes: {
+    //     exclude: ['updatedAt', 'description', 'channelId', 'video_path'],
+    //   },
+    // });
+
+    const plainedChannel = channel.get({ plain: true });
+    plainedChannel.id = plainedChannel.publicId;
+    delete plainedChannel['publicId'];
+    return { channel };
   }
 
-  async videoid(id: number, req: any) {
+  async videoid(id: string, req: any) {
     const page = req.query.page || 1;
     const user = req.user;
 
     try {
-      let video: Video = await Video.findByPk(id, {
-        attributes: {
-          exclude: ['updatedAt'],
+      let video = await Video.findOne({
+        where: { publicId: id, status: 'ok' },
+        attributes: [
+          'id',
+          'title',
+          'views',
+          'channelId',
+          'description',
+          'thumbnail',
+          'duration',
+          'video_path',
 
-          include: [
-            [
-              Sequelize.literal(
-                `(SELECT COUNT(*) FROM "Likes" WHERE "Likes"."videoId" =  "Video"."id" AND "Likes"."reaction" = 'like')`,
-              ),
-              'likeCount',
-            ],
-            // [
-            //   Sequelize.literal(
-            //     `(SELECT COUNT(*) FROM "Likes" WHERE "Likes"."videoId" =  "Video"."id" AND "Likes"."reaction" = 'dislike')`,
-            //   ),
-            //   'disLikeCount',
-            // ],
-            [
-              Sequelize.literal(
-                `(SELECT "reaction" FROM "Likes" WHERE "Likes"."videoId" = "Video"."id" AND "Likes"."userId" =  ${user.id})`,
-              ),
-              'reaction',
-            ],
+          [
+            Sequelize.literal(
+              `(SELECT COUNT(*) FROM "Likes" WHERE "Likes"."videoId" =  "Video"."id" AND "Likes"."reaction" = 'like')`,
+            ),
+            'likeCount',
           ],
-        },
+          // [
+          //   Sequelize.literal(
+          //     `(SELECT COUNT(*) FROM "Likes" WHERE "Likes"."videoId" =  "Video"."id" AND "Likes"."reaction" = 'dislike')`,
+          //   ),
+          //   'disLikeCount',
+          // ],
+          [
+            Sequelize.literal(
+              `(SELECT "reaction" FROM "Likes" WHERE "Likes"."videoId" = "Video"."id" AND "Likes"."userId" =  ${user.id})`,
+            ),
+            'reaction',
+          ],
+          'publicId',
+        ],
+        // },
       });
-      video.views = video.views + 1;
+      video.views++;
       video.save();
 
       const channel = await video.getChannel({
@@ -227,51 +243,53 @@ export class AppService {
         },
       });
 
-      const comments = await video.getComments({
-        attributes: ['id', 'comment', 'createdAt'],
-        // attributes: {
-        // exclude: [],
-        // include: [
-        //   [
-        //     Sequelize.literal(
-        //       `( SELECT 'comment' FROM "Comments" WHERE "Comments"."videoId" =  "Video"."id")`,
-        //     ),
-        //     'commentChilds',
-        //   ],
-        // ],
-        // },
-        include: {
-          model: User,
-          attributes: ['id', 'username', 'avatar'],
+      const comments = await video.getComment({
+        where: { parent: null },
+        attributes: {
+          exclude: ['updatedAt', 'videoId', 'parent'],
         },
+        include: [
+          {
+            model: User,
+            attributes: ['username', 'avatar'],
+          },
+        ],
       });
 
-      // const content = await Video.findAll({
-      //   where: {
-      //     id: {
-      //       [Op.not]: id,
-      //     },
-      //     [Op.or]: {
-      //       title: { [Op.iLike]: `%${video.title}%` },
-      //       channelId: channel.id,
-      //     },
-      //   },
-      //   limit: 10,
-      //   offset: 0,
-      //   attributes: ['id', 'title', 'thumbnail', 'views'],
-      //   include: {
-      //     model: Channel,
-      //     attributes: ['id', 'channel_name', 'avatar'],
-      //   },
-      // });
+      const gettingComments = [];
 
+      for (let comm of comments) {
+        const plainedComments = comm.get({ plain: true });
+        const childs = await Comment.findAll({
+          where: { parent: comm.id },
+          attributes: ['id', 'userId', 'parent', 'text'],
+          include: [
+            {
+              model: User,
+              attributes: ['username', 'avatar'],
+            },
+          ],
+        });
+        plainedComments['childs'] = childs;
+        gettingComments.push(plainedComments);
+      }
       if (user.id > 0) {
         const history = await UserHistory.findOrCreate({
           where: { userId: user.id, videoId: video.id },
         });
-        console.log(history);
       }
-      return { video, channel, comments };
+
+      const toPlained = video.get({ plain: true });
+      delete toPlained['id'];
+      delete toPlained['updatedAt'];
+      toPlained['id'] = toPlained.publicId;
+      delete toPlained['publicId'];
+
+      const channelPlained = channel.get({ plain: true });
+      channelPlained.id = channelPlained.publicId;
+      delete channelPlained['publicId'];
+
+      return { video, channel, comments: gettingComments };
     } catch (err) {
       throw new Error(err);
     }
@@ -285,44 +303,62 @@ export class AppService {
         {
           model: Video,
           required: false,
-          attributes: {
-            exclude: ['description', 'updatedAt', 'genreId'],
-          },
           include: [
             {
               model: Channel,
               required: false,
-              attributes: ['channel_name', 'avatar'],
+              attributes: [['publicId', 'id'], 'channel_name', 'avatar'],
             },
           ],
+          attributes: {
+            include: [['publicId', 'id']],
+            exclude: [
+              'description',
+              'updatedAt',
+              'genreId',
+              'publicId',
+              'channelId',
+            ],
+          },
         },
       ],
-      attributes: { exclude: ['userId', 'updatedAt', 'createdAt'] },
+      attributes: { exclude: ['userId', 'updatedAt', 'createdAt', 'videoId'] },
     });
 
-    return history;
+    return { history };
   }
 
   async fLikedVideos(user: any) {
     const user1 = await User.findByPk(user.id);
     const liked = await user1.getLikes({
+      where: { reaction: 'like' },
       include: [
         {
           model: Video,
           required: false,
           where: { status: 'ok' },
-          attributes: {
-            exclude: ['description', 'updatedAt', 'genreId'],
-          },
           include: [
             {
               model: Channel,
               required: false,
-              attributes: ['channel_name', 'avatar'],
+              attributes: ['channel_name', 'avatar', ['publicId', 'id']],
             },
           ],
+          attributes: {
+            include: [['publicId', 'id']],
+            exclude: [
+              'description',
+              'updatedAt',
+              'genreId',
+              'channelId',
+              'id',
+              'publicId',
+            ],
+          },
         },
       ],
+      attributes: [],
+      // exclude: ['createdAt', 'userId', 'updatedAt', 'reaction', 'videoId'],
     });
     return { liked };
   }
@@ -334,39 +370,56 @@ export class AppService {
         {
           model: Video,
           required: false,
-          where: { status: 'ok' },
-          attributes: {
-            exclude: ['description', 'updatedAt', 'genreId'],
-          },
           include: [
             {
               model: Channel,
               required: false,
-              attributes: ['channel_name', 'avatar'],
+              attributes: [['publicId', 'id'], 'channel_name', 'avatar'],
             },
           ],
+          attributes: {
+            include: [['publicId', 'id']],
+            exclude: [
+              'description',
+              'updatedAt',
+              'genreId',
+              'publicId',
+              'channelId',
+            ],
+          },
         },
       ],
-      attributes: { exclude: ['userId', 'updatedAt', 'createdAt'] },
+      attributes: { exclude: ['userId', 'updatedAt', 'createdAt', 'videoId'] },
     });
     const liked = await user1.getLikes({
+      where: { reaction: 'like' },
       include: [
         {
           model: Video,
           required: false,
           where: { status: 'ok' },
-          attributes: {
-            exclude: ['description', 'updatedAt', 'genreId'],
-          },
           include: [
             {
               model: Channel,
               required: false,
-              attributes: ['channel_name', 'avatar'],
+              attributes: ['channel_name', 'avatar', ['publicId', 'id']],
             },
           ],
+          attributes: {
+            include: [['publicId', 'id']],
+            exclude: [
+              'description',
+              'updatedAt',
+              'genreId',
+              'channelId',
+              'id',
+              'publicId',
+            ],
+          },
         },
       ],
+      attributes: [],
+      // exclude: ['createdAt', 'userId', 'updatedAt', 'reaction', 'videoId'],
     });
 
     const playlist = await user1.getUserPlaylists({
@@ -375,18 +428,32 @@ export class AppService {
           model: Video,
           required: false,
           where: { status: 'ok' },
-          attributes: {
-            exclude: ['description', 'updatedAt', 'genreId'],
-          },
           include: [
             {
               model: Channel,
               required: false,
-              attributes: ['channel_name', 'avatar'],
+              attributes: ['channel_name', 'avatar', ['publicId', 'id']],
             },
           ],
+          through: {
+            attributes: [],
+          },
+          attributes: {
+            include: [['publicId', 'id']],
+            exclude: [
+              'description',
+              'updatedAt',
+              'genreId',
+              'channelId',
+              'id',
+              'publicId',
+            ],
+          },
         },
       ],
+      attributes: {
+        exclude: ['userId', 'description', 'createdAt', 'updatedAt'],
+      },
     });
     return { history, playlist, liked };
   }

@@ -30,14 +30,14 @@ export class UserPlaylistVideos extends Model {
 
   @ForeignKey(() => UserPlaylist)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.BIGINT,
     allowNull: false,
   })
   userPlaylistId: number;
 
   @ForeignKey(() => Video)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.BIGINT,
     allowNull: false,
   })
   videoId: number;

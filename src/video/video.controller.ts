@@ -28,7 +28,7 @@ export class VideoController {
     summary: 'For related videos',
     description: 'need when open video',
   })
-  videoRelated(@Param('videoId') videoId: number, @Query('type') type: string) {
+  videoRelated(@Param('videoId') videoId: string, @Query('type') type: string) {
     return this.videoService.fRelatedVideos(videoId, type);
   }
 }
